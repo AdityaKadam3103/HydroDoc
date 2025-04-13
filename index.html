@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydroDoc - Waterborne Disease Risk Checker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HydroDoc</h1>
+            <p class="subtitle">Waterborne Disease Risk Checker</p>
+            <div class="controls">
+                <select id="language-select">
+                    <option value="en">English</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                    <option value="hi">हिंदी</option>
+                </select>
+                <button id="emergency-btn" class="emergency-button">
+                    <i class="fas fa-phone-alt"></i> Emergency Contacts
+                </button>
+                <button id="tips-btn" class="tips-button">
+                    <i class="fas fa-lightbulb"></i> Water Safety Tips
+                </button>
+            </div>
+        </header>
+
+        <div class="chat-container">
+            <div class="location-input">
+                <input type="text" id="location-input" placeholder="Enter your location for localized risk assessment...">
+                <button id="location-btn">Set Location</button>
+            </div>
+
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot">
+                    <p>Hello! I'm HydroDoc, your AI assistant for waterborne disease risk assessment. How can I help you today?</p>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <div class="symptom-tracker">
+                    <button id="symptom-btn" class="symptom-button">
+                        <i class="fas fa-clipboard-list"></i> Track Symptoms
+                    </button>
+                </div>
+                <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
+                <button id="send-button">Send</button>
+            </div>
+        </div>
+
+        <!-- Modal for Emergency Contacts -->
+        <div id="emergency-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Emergency Contacts</h2>
+                <div class="emergency-list">
+                    <div class="emergency-item">
+                        <h3>Local Health Department</h3>
+                        <p>Phone: 123-456-7890</p>
+                    </div>
+                    <div class="emergency-item">
+                        <h3>Poison Control</h3>
+                        <p>Phone: 1-800-222-1222</p>
+                    </div>
+                    <div class="emergency-item">
+                        <h3>Emergency Services</h3>
+                        <p>Phone: 911</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Water Safety Tips -->
+        <div id="tips-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Water Safety Tips</h2>
+                <div class="tips-list">
+                    <div class="tip-item">
+                        <i class="fas fa-check-circle"></i>
+                        <p>Always boil water before drinking if you suspect contamination</p>
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-check-circle"></i>
+                        <p>Use water filters or purification tablets when traveling</p>
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-check-circle"></i>
+                        <p>Store water in clean, covered containers</p>
+                    </div>
+                    <div class="tip-item">
+                        <i class="fas fa-check-circle"></i>
+                        <p>Wash hands frequently with clean water and soap</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Symptom Tracker -->
+        <div id="symptom-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Symptom Tracker</h2>
+                <div class="symptom-form">
+                    <div class="form-group">
+                        <label for="symptom-type">Symptom Type:</label>
+                        <select id="symptom-type">
+                            <option value="diarrhea">Diarrhea</option>
+                            <option value="fever">Fever</option>
+                            <option value="vomiting">Vomiting</option>
+                            <option value="stomach-pain">Stomach Pain</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="symptom-severity">Severity:</label>
+                        <select id="symptom-severity">
+                            <option value="mild">Mild</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="severe">Severe</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="symptom-duration">Duration:</label>
+                        <input type="text" id="symptom-duration" placeholder="e.g., 2 days">
+                    </div>
+                    <button id="save-symptom">Save Symptom</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Existing chat functionality
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const languageSelect = document.getElementById('language-select');
+        const emergencyBtn = document.getElementById('emergency-btn');
+        const tipsBtn = document.getElementById('tips-btn');
+        const symptomBtn = document.getElementById('symptom-btn');
+        const locationInput = document.getElementById('location-input');
+        const locationBtn = document.getElementById('location-btn');
+
+        // Modal functionality
+        const modals = {
+            emergency: document.getElementById('emergency-modal'),
+            tips: document.getElementById('tips-modal'),
+            symptom: document.getElementById('symptom-modal')
+        };
+
+        // Open modal
+        function openModal(modalId) {
+            modals[modalId].style.display = 'block';
+        }
+
+        // Close modal
+        function closeModal(modalId) {
+            modals[modalId].style.display = 'none';
+        }
+
+        // Event listeners for modals
+        emergencyBtn.addEventListener('click', () => openModal('emergency'));
+        tipsBtn.addEventListener('click', () => openModal('tips'));
+        symptomBtn.addEventListener('click', () => openModal('symptom'));
+
+        // Close buttons for all modals
+        document.querySelectorAll('.close').forEach(button => {
+            button.addEventListener('click', () => {
+                const modal = button.closest('.modal');
+                modal.style.display = 'none';
+            });
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (event) => {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        });
+
+        // Location handling
+        locationBtn.addEventListener('click', () => {
+            const location = locationInput.value.trim();
+            if (location) {
+                addMessage(`Location set to: ${location}`, true);
+                // Here you would typically send the location to the server
+                // for localized risk assessment
+            }
+        });
+
+        // Symptom tracking
+        document.getElementById('save-symptom').addEventListener('click', () => {
+            const type = document.getElementById('symptom-type').value;
+            const severity = document.getElementById('symptom-severity').value;
+            const duration = document.getElementById('symptom-duration').value;
+            
+            const symptomMessage = `Symptom recorded: ${type} (${severity}) for ${duration}`;
+            addMessage(symptomMessage, true);
+            closeModal('symptom');
+        });
+
+        // Existing message handling
+        function addMessage(message, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            messageDiv.innerHTML = `<p>${message}</p>`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, true);
+            userInput.value = '';
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        message,
+                        language: languageSelect.value,
+                        location: locationInput.value
+                    }),
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    addMessage('Sorry, there was an error processing your request. Please try again.');
+                } else {
+                    // Check if the response is a duplicate of the last message
+                    const lastMessage = chatMessages.lastElementChild;
+                    if (lastMessage && lastMessage.classList.contains('bot')) {
+                        const lastMessageText = lastMessage.querySelector('p').textContent;
+                        if (lastMessageText === data.response) {
+                            return; // Skip adding duplicate message
+                        }
+                    }
+                    addMessage(data.response);
+                }
+            } catch (error) {
+                addMessage('Sorry, there was an error connecting to the server. Please try again.');
+            }
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html> 
